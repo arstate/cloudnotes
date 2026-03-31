@@ -75,14 +75,16 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
             <Pin className="h-5 w-5" />
           </Button>
           <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("hover:text-gray-900", note.deadline ? "text-red-500" : "text-gray-500")}
-              >
-                <Clock className="h-5 w-5" />
-              </Button>
+            <PopoverTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("hover:text-gray-900", note.deadline ? "text-red-500" : "text-gray-500")}
+                />
+              }
+            >
+              <Clock className="h-5 w-5" />
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar

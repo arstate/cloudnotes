@@ -109,10 +109,8 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
         </div>
         <div className="flex items-center gap-2">
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400">
-                <Trash2 className="h-5 w-5" />
-              </Button>
+            <AlertDialogTrigger className="flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-red-400">
+              <Trash2 className="h-5 w-5" />
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

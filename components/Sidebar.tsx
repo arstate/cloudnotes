@@ -116,11 +116,9 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
       <div className="border-t border-gray-200 p-3 dark:border-gray-800">
         <ThemeToggle />
         <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
+          <AlertDialogTrigger className="flex w-full items-center justify-start rounded-md px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100">
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>

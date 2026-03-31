@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 export default function Auth({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -17,6 +18,22 @@ export default function Auth({ children }: { children: React.ReactNode }) {
     });
     return () => unsubscribe();
   }, []);
+
+  const handleSignIn = async () => {
+    try {
+      setError(null);
+      await signInWithGoogle();
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError("Domain ini belum diizinkan. Tambahkan domain Vercel Anda ke 'Authorized domains' di Firebase Console (Authentication > Settings).");
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setError("Popup login ditutup sebelum selesai.");
+      } else {
+        setError(err.message || "Terjadi kesalahan saat login.");
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -38,9 +55,16 @@ export default function Auth({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <h1 className="mb-2 text-2xl font-semibold text-gray-900">Notes</h1>
-          <p className="mb-8 text-sm text-gray-500">Sign in to sync your notes across devices.</p>
+          <p className="mb-6 text-sm text-gray-500">Sign in to sync your notes across devices.</p>
+          
+          {error && (
+            <div className="mb-6 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-100">
+              {error}
+            </div>
+          )}
+
           <Button 
-            onClick={signInWithGoogle} 
+            onClick={handleSignIn} 
             className="w-full bg-[#F2C94C] text-black hover:bg-[#E2B93C]"
             size="lg"
           >

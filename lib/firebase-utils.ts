@@ -12,6 +12,33 @@ export interface Note {
   updatedAt: Timestamp;
 }
 
+export interface UserProfile {
+  userId: string;
+  theme: 'light' | 'dark' | 'system';
+}
+
+export const updateUserTheme = async (userId: string, theme: 'light' | 'dark' | 'system') => {
+  const userRef = doc(db, 'users', userId);
+  try {
+    await setDoc(userRef, { theme }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+  }
+};
+
+export const subscribeToUserTheme = (userId: string, callback: (theme: 'light' | 'dark' | 'system') => void) => {
+  const userRef = doc(db, 'users', userId);
+  return onSnapshot(userRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data().theme || 'system');
+    } else {
+      callback('system');
+    }
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${userId}`);
+  });
+};
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

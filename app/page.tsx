@@ -4,13 +4,15 @@ import Auth from '@/components/Auth';
 import { Sidebar } from '@/components/Sidebar';
 import { Editor } from '@/components/Editor';
 import { useState, useEffect } from 'react';
-import { Note, subscribeToNotes, createNote, deleteNote, updateNote } from '@/lib/firebase-utils';
+import { Note, subscribeToNotes, createNote, deleteNote, updateNote, subscribeToUserTheme } from '@/lib/firebase-utils';
 import { auth } from '@/firebase';
+import { useTheme } from 'next-themes';
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -23,7 +25,15 @@ export default function Home() {
             setSelectedNoteId(null);
           }
         });
-        return () => unsubscribeNotes();
+        
+        const unsubscribeTheme = subscribeToUserTheme(user.uid, (theme) => {
+          setTheme(theme);
+        });
+        
+        return () => {
+          unsubscribeNotes();
+          unsubscribeTheme();
+        };
       } else {
         setNotes([]);
         setSelectedNoteId(null);
@@ -31,7 +41,7 @@ export default function Home() {
     });
 
     return () => unsubscribeAuth();
-  }, []);
+  }, [setTheme]);
 
   const handleCreateNote = async () => {
     if (!auth.currentUser) return;
@@ -66,7 +76,7 @@ export default function Home() {
 
   return (
     <Auth>
-      <div className="flex h-screen w-full overflow-hidden bg-white text-gray-900">
+      <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Sidebar 
           notes={notes} 
           selectedNoteId={selectedNoteId} 
@@ -86,13 +96,13 @@ export default function Home() {
               isSidebarOpen={isSidebarOpen}
             />
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center bg-white text-gray-400">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-                <svg className="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex flex-1 flex-col items-center justify-center bg-white dark:bg-gray-950 text-gray-400 dark:text-gray-500">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-900">
+                <svg className="h-8 w-8 text-gray-300 dark:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-gray-500">No Note Selected</p>
+              <p className="text-lg font-medium text-gray-500 dark:text-gray-400">No Note Selected</p>
               <p className="mt-1 text-sm">Select a note from the sidebar or create a new one.</p>
             </div>
           )}

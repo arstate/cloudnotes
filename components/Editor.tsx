@@ -7,6 +7,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar as CalendarIcon, Pin, Trash2, PanelLeftClose, PanelLeftOpen, Clock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import { useState, useEffect, useRef } from 'react';
@@ -59,18 +70,18 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
   const formattedDate = note.updatedAt ? format(note.updatedAt.toDate(), "MMMM d, yyyy 'at' h:mm a") : '';
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col bg-white dark:bg-[#121212]">
       {/* Toolbar */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-100 px-4">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800 px-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="text-gray-500 hover:text-gray-900">
+          <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {isSidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleTogglePin}
-            className={cn("hover:text-gray-900", note.isPinned ? "text-[#F2C94C]" : "text-gray-500")}
+            className={cn("hover:text-gray-900 dark:hover:text-gray-100", note.isPinned ? "text-[#F2C94C]" : "text-gray-500 dark:text-gray-400")}
           >
             <Pin className="h-5 w-5" />
           </Button>
@@ -80,7 +91,7 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("hover:text-gray-900", note.deadline ? "text-red-500" : "text-gray-500")}
+                  className={cn("hover:text-gray-900 dark:hover:text-gray-100", note.deadline ? "text-red-500 dark:text-red-400" : "text-gray-500 dark:text-gray-400")}
                 />
               }
             >
@@ -97,19 +108,35 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
           </Popover>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onDelete} className="text-gray-500 hover:text-red-600">
-            <Trash2 className="h-5 w-5" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400">
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this note.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
       {/* Editor Area */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 lg:px-12 lg:py-10">
+      <div className="flex-1 overflow-y-auto px-8 py-6 lg:px-12 lg:py-10 bg-white dark:bg-transparent">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-6 text-center text-xs font-medium text-gray-400">{formattedDate}</p>
+          <p className="mb-6 text-center text-xs font-medium text-gray-400 dark:text-gray-500">{formattedDate}</p>
           
           {note.deadline && (
-            <div className="mb-6 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="mb-6 flex items-center gap-2 rounded-md bg-red-50 dark:bg-red-950/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
               <CalendarIcon className="h-4 w-4" />
               <span>Deadline: {format(note.deadline.toDate(), 'MMMM d, yyyy')}</span>
             </div>
@@ -120,13 +147,13 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
             placeholder="Title"
             value={title}
             onChange={handleTitleChange}
-            className="mb-4 h-auto border-none bg-transparent px-0 text-3xl font-bold shadow-none focus-visible:ring-0 placeholder:text-gray-300"
+            className="mb-4 h-auto border-none bg-transparent px-0 text-3xl font-bold shadow-none focus-visible:ring-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 dark:bg-transparent dark:border-none"
           />
           <Textarea
             placeholder="Start typing..."
             value={content}
             onChange={handleContentChange}
-            className="min-h-[500px] resize-none border-none bg-transparent px-0 text-base leading-relaxed shadow-none focus-visible:ring-0 placeholder:text-gray-300"
+            className="min-h-[500px] resize-none border-none bg-transparent px-0 text-base leading-relaxed shadow-none focus-visible:ring-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 dark:bg-transparent dark:border-none"
           />
         </div>
       </div>

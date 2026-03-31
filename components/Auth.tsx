@@ -37,16 +37,16 @@ export default function Auth({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#F5F5F4]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      <div className="flex h-screen w-full items-center justify-center bg-[#F5F5F4] dark:bg-gray-950">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500 dark:text-gray-400" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F5F5F4]">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-gray-100 text-center">
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#F5F5F4] dark:bg-gray-950">
+        <div className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-sm border border-gray-100 dark:border-gray-800 text-center">
           <div className="mb-6 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F2C94C] shadow-sm">
               <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,11 +54,11 @@ export default function Auth({ children }: { children: React.ReactNode }) {
               </svg>
             </div>
           </div>
-          <h1 className="mb-2 text-2xl font-semibold text-gray-900">Notes</h1>
-          <p className="mb-6 text-sm text-gray-500">Sign in to sync your notes across devices.</p>
+          <h1 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">Notes</h1>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Sign in to sync your notes across devices.</p>
           
           {error && (
-            <div className="mb-6 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-100">
+            <div className="mb-6 rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/50">
               {error}
             </div>
           )}

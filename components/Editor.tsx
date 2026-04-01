@@ -48,6 +48,64 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
     ],
     content: note.content,
     immediatelyRender: false,
+    editorProps: {
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                event.preventDefault();
+                const upload = async () => {
+                  const storageRef = ref(storage, `images/${note.id}/${file.name}`);
+                  await uploadBytes(storageRef, file);
+                  const url = await getDownloadURL(storageRef);
+                  const { schema } = view.state;
+                  const node = schema.nodes.image.create({ src: url });
+                  const tr = view.state.tr.replaceSelectionWith(node);
+                  view.dispatch(tr);
+                };
+                upload();
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+          const files = event.dataTransfer.files;
+          let handled = false;
+          for (let i = 0; i < files.length; i++) {
+            if (files[i].type.indexOf('image') !== -1) {
+              event.preventDefault();
+              const file = files[i];
+              const upload = async () => {
+                const storageRef = ref(storage, `images/${note.id}/${file.name}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                const { schema } = view.state;
+                const node = schema.nodes.image.create({ src: url });
+                const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                if (coordinates) {
+                  const tr = view.state.tr.insert(coordinates.pos, node);
+                  view.dispatch(tr);
+                } else {
+                  const tr = view.state.tr.replaceSelectionWith(node);
+                  view.dispatch(tr);
+                }
+              };
+              upload();
+              handled = true;
+            }
+          }
+          return handled;
+        }
+        return false;
+      }
+    },
     onUpdate: ({ editor }) => {
       debouncedUpdate({ content: editor.getHTML() });
     },
@@ -66,53 +124,6 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
     setTitle(e.target.value);
     debouncedUpdate({ title: e.target.value });
   };
-
-  const handleImageUpload = useCallback(async (file: File) => {
-    const storageRef = ref(storage, `images/${note.id}/${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    editor?.chain().focus().setImage({ src: url }).run();
-  }, [note.id, editor]);
-
-  // Handle paste and drop
-  useEffect(() => {
-    if (!editor) return;
-
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') !== -1) {
-            const file = items[i].getAsFile();
-            if (file) {
-              handleImageUpload(file);
-            }
-          }
-        }
-      }
-    };
-
-    const handleDrop = (e: DragEvent) => {
-      e.preventDefault();
-      const files = e.dataTransfer?.files;
-      if (files) {
-        for (let i = 0; i < files.length; i++) {
-          if (files[i].type.indexOf('image') !== -1) {
-            handleImageUpload(files[i]);
-          }
-        }
-      }
-    };
-
-    editor.view.dom.addEventListener('paste', handlePaste);
-    editor.view.dom.addEventListener('drop', handleDrop);
-
-    return () => {
-      editor.view.dom.removeEventListener('paste', handlePaste);
-      editor.view.dom.removeEventListener('drop', handleDrop);
-    };
-  }, [editor, handleImageUpload]);
-
 
   const handleTogglePin = () => {
     onUpdate({ isPinned: !note.isPinned });

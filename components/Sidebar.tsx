@@ -46,7 +46,12 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
   const renderNoteItem = (note: Note) => {
     const isSelected = note.id === selectedNoteId;
     const title = note.title || 'New Note';
-    const preview = note.content ? note.content.substring(0, 40) + '...' : 'No additional text';
+    
+    // Strip HTML tags and decode common entities for preview
+    const plainText = note.content 
+      ? note.content.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() 
+      : '';
+    const preview = plainText ? plainText.substring(0, 40) + '...' : 'No additional text';
     const date = note.updatedAt ? format(note.updatedAt.toDate(), 'M/d/yy') : '';
 
     return (

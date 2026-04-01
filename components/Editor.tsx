@@ -3,7 +3,6 @@
 import { Note } from '@/lib/firebase-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar as CalendarIcon, Pin, Trash2, PanelLeftClose, PanelLeftOpen, Clock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -20,8 +19,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import { storage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface EditorProps {
   note: Note;
@@ -33,8 +37,21 @@ interface EditorProps {
 
 export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpen }: EditorProps) {
   const [title, setTitle] = useState(note.title);
-  const [content, setContent] = useState(note.content);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image.configure({
+        allowBase64: true,
+      }),
+    ],
+    content: note.content,
+    immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      debouncedUpdate({ content: editor.getHTML() });
+    },
+  });
 
   const debouncedUpdate = (updates: Partial<Note>) => {
     if (updateTimeoutRef.current) {
@@ -50,10 +67,52 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
     debouncedUpdate({ title: e.target.value });
   };
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
-    debouncedUpdate({ content: e.target.value });
-  };
+  const handleImageUpload = useCallback(async (file: File) => {
+    const storageRef = ref(storage, `images/${note.id}/${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    editor?.chain().focus().setImage({ src: url }).run();
+  }, [note.id, editor]);
+
+  // Handle paste and drop
+  useEffect(() => {
+    if (!editor) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+              handleImageUpload(file);
+            }
+          }
+        }
+      }
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      const files = e.dataTransfer?.files;
+      if (files) {
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].type.indexOf('image') !== -1) {
+            handleImageUpload(files[i]);
+          }
+        }
+      }
+    };
+
+    editor.view.dom.addEventListener('paste', handlePaste);
+    editor.view.dom.addEventListener('drop', handleDrop);
+
+    return () => {
+      editor.view.dom.removeEventListener('paste', handlePaste);
+      editor.view.dom.removeEventListener('drop', handleDrop);
+    };
+  }, [editor, handleImageUpload]);
+
 
   const handleTogglePin = () => {
     onUpdate({ isPinned: !note.isPinned });
@@ -147,11 +206,9 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
             onChange={handleTitleChange}
             className="mb-4 h-auto border-none bg-transparent px-0 text-3xl font-bold shadow-none focus-visible:ring-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 dark:bg-transparent dark:border-none"
           />
-          <Textarea
-            placeholder="Start typing..."
-            value={content}
-            onChange={handleContentChange}
-            className="min-h-[500px] resize-none border-none bg-transparent px-0 text-base leading-relaxed shadow-none focus-visible:ring-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 dark:bg-transparent dark:border-none"
+          <EditorContent
+            editor={editor}
+            className="min-h-[500px] prose dark:prose-invert max-w-none"
           />
         </div>
       </div>

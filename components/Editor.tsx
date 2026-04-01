@@ -3,7 +3,7 @@
 import { Note } from '@/lib/firebase-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar as CalendarIcon, Pin, Trash2, PanelLeftClose, PanelLeftOpen, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Pin, Trash2, PanelLeftClose, PanelLeftOpen, Clock, Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -199,8 +199,15 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
       </div>
 
       {/* Editor Area */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 lg:px-12 lg:py-10 bg-white dark:bg-transparent">
-        <div className="mx-auto max-w-3xl">
+      <div 
+        className="flex-1 overflow-y-auto px-8 py-6 lg:px-12 lg:py-10 bg-white dark:bg-transparent cursor-text"
+        onClick={(e) => {
+          if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('editor-container')) {
+            editor?.commands.focus('end');
+          }
+        }}
+      >
+        <div className="mx-auto max-w-3xl min-h-full editor-container flex flex-col">
           <p className="mb-6 text-center text-xs font-medium text-gray-400 dark:text-gray-500">{formattedDate}</p>
           
           {note.deadline && (
@@ -210,16 +217,80 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
             </div>
           )}
 
+          {/* Formatting Toolbar */}
+          <div className="mb-4 flex flex-wrap items-center gap-1 border-b border-gray-100 pb-4 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('bold') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleItalic().run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('italic') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <Italic className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 1 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <Heading1 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <Heading2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 3 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <Heading3 className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+              className={cn("h-8 w-8 p-0", editor?.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+            >
+              <ListOrdered className="h-4 w-4" />
+            </Button>
+          </div>
+
           <Input
             type="text"
             placeholder="Title"
             value={title}
             onChange={handleTitleChange}
+            onClick={(e) => e.stopPropagation()}
             className="mb-4 h-auto border-none bg-transparent px-0 text-3xl font-bold shadow-none focus-visible:ring-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 dark:bg-transparent dark:border-none"
           />
           <EditorContent
             editor={editor}
-            className="min-h-[500px] prose dark:prose-invert max-w-none"
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 prose dark:prose-invert max-w-none [&_.ProseMirror]:min-h-[500px] [&_.ProseMirror]:outline-none"
           />
         </div>
       </div>

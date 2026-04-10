@@ -11,8 +11,45 @@ import { useTheme } from 'next-themes';
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default to false on mobile, we can handle desktop via CSS or effect
   const { setTheme } = useTheme();
+
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEndHandler = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+    if (isRightSwipe && !isSidebarOpen) {
+      setIsSidebarOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    // Open sidebar by default on desktop
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -76,7 +113,12 @@ export default function Home() {
 
   return (
     <Auth>
-      <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <div 
+        className="flex h-screen w-full overflow-hidden bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 relative"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEndHandler}
+      >
         <Sidebar 
           notes={notes} 
           selectedNoteId={selectedNoteId} 

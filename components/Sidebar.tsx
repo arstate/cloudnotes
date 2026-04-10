@@ -2,7 +2,6 @@
 
 import { Note } from '@/lib/firebase-utils';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Plus, Search, Pin, Calendar, FileText, ChevronLeft, ChevronRight, LogOut, Sun, Moon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -57,7 +56,13 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
     return (
       <button
         key={note.id}
-        onClick={() => onSelectNote(note.id)}
+        onClick={() => {
+          onSelectNote(note.id);
+          // Auto-close sidebar on mobile when a note is selected
+          if (window.innerWidth < 768) {
+            onToggle();
+          }
+        }}
         className={cn(
           'flex w-full flex-col items-start gap-1 rounded-lg px-4 py-3 text-left transition-colors',
           isSelected ? 'bg-[#F2C94C]/20 dark:bg-[#F2C94C]/20' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -77,13 +82,22 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
     );
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E]">
-      <div className="flex items-center justify-between px-4 py-3">
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 md:hidden" 
+          onClick={onToggle}
+        />
+      )}
+      <div 
+        className={cn(
+          "absolute inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E] transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full md:hidden"
+        )}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">All Notes</h2>
         <Button variant="ghost" size="icon" onClick={onCreateNote} className="h-8 w-8 text-[#F2C94C] hover:bg-gray-200 hover:text-[#E2B93C] dark:hover:bg-gray-800">
           <Plus className="h-5 w-5" />
@@ -101,7 +115,7 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
           />
         </div>
       </div>
-      <ScrollArea className="flex-1 px-2">
+      <div className="flex-1 overflow-y-auto px-2">
         {pinnedNotes.length > 0 && (
           <div className="mb-4">
             <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Pinned</h3>
@@ -117,7 +131,7 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
         {filteredNotes.length === 0 && (
           <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">No notes found</div>
         )}
-      </ScrollArea>
+      </div>
       <div className="border-t border-gray-200 p-3 dark:border-gray-800">
         <ThemeToggle />
         <AlertDialog>
@@ -140,5 +154,6 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
         </AlertDialog>
       </div>
     </div>
+    </>
   );
 }

@@ -8,39 +8,65 @@ import { Note, subscribeToNotes, createNote, deleteNote, updateNote, subscribeTo
 import { auth } from '@/firebase';
 import { useTheme } from 'next-themes';
 
+import { motion, useMotionValue, animate } from 'motion/react';
+
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default to false on mobile, we can handle desktop via CSS or effect
   const { setTheme } = useTheme();
+  const [isMobile, setIsMobile] = useState(true);
+
+  const sidebarWidth = 288; // w-72 is 18rem = 288px
+  const x = useMotionValue(-sidebarWidth);
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      animate(x, isSidebarOpen ? 0 : -sidebarWidth, { type: 'spring', bounce: 0, duration: 0.3 });
+    } else {
+      x.set(0);
+    }
+  }, [isSidebarOpen, isMobile, x, sidebarWidth]);
 
   const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
+    if (!isMobile) return;
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (!isMobile || touchStart === null) return;
+    const currentX = e.targetTouches[0].clientX;
+    const delta = currentX - touchStart;
+    
+    // Only allow opening from the left edge (e.g., within 30px)
+    if (!isSidebarOpen && touchStart > 30) return;
+
+    let newX = isSidebarOpen ? delta : -sidebarWidth + delta;
+    newX = Math.max(-sidebarWidth, Math.min(0, newX));
+    x.set(newX);
   };
 
   const onTouchEndHandler = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && isSidebarOpen) {
-      setIsSidebarOpen(false);
-    }
-    if (isRightSwipe && !isSidebarOpen) {
+    if (!isMobile || touchStart === null) return;
+    const currentX = x.get();
+    
+    if (currentX > -sidebarWidth / 2) {
       setIsSidebarOpen(true);
+      animate(x, 0, { type: 'spring', bounce: 0, duration: 0.3 });
+    } else {
+      setIsSidebarOpen(false);
+      animate(x, -sidebarWidth, { type: 'spring', bounce: 0, duration: 0.3 });
     }
+    setTouchStart(null);
   };
 
   useEffect(() => {
@@ -126,6 +152,7 @@ export default function Home() {
           onCreateNote={handleCreateNote}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          x={x}
         />
         <main className="flex flex-1 flex-col overflow-hidden">
           {selectedNote ? (

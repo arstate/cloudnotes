@@ -21,6 +21,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+import { motion, MotionValue, useTransform, useMotionValue } from 'motion/react';
+
 interface SidebarProps {
   notes: Note[];
   selectedNoteId: string | null;
@@ -28,10 +30,18 @@ interface SidebarProps {
   onCreateNote: () => void;
   isOpen: boolean;
   onToggle: () => void;
+  x?: MotionValue<number>;
 }
 
-export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isOpen, onToggle }: SidebarProps) {
+export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isOpen, onToggle, x }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const fallbackX = useMotionValue(0);
+  const activeX = x || fallbackX;
+  
+  // Transform x (-288 to 0) to opacity (0 to 1)
+  const overlayOpacity = useTransform(activeX, [-288, 0], [0, 1]);
+  const pointerEvents = useTransform(activeX, (val) => val > -280 ? 'auto' : 'none');
 
   const filteredNotes = notes.filter(
     (n) =>
@@ -85,16 +95,16 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 md:hidden" 
-          onClick={onToggle}
-        />
-      )}
-      <div 
+      <motion.div 
+        style={{ opacity: x ? overlayOpacity : (isOpen ? 1 : 0), pointerEvents: x ? pointerEvents : (isOpen ? 'auto' : 'none') }}
+        className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 md:hidden" 
+        onClick={onToggle}
+      />
+      <motion.div 
+        style={x ? { x } : undefined}
         className={cn(
-          "absolute inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E] transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full md:hidden"
+          "absolute inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E] md:relative md:translate-x-0 md:!transform-none",
+          !x && (isOpen ? "translate-x-0" : "-translate-x-full md:hidden")
         )}
       >
         <div className="flex items-center justify-between px-4 py-3">
@@ -115,7 +125,7 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
           />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-2">
+      <div className="flex-1 overflow-y-auto px-2 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {pinnedNotes.length > 0 && (
           <div className="mb-4">
             <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Pinned</h3>
@@ -153,7 +163,7 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </motion.div>
     </>
   );
 }

@@ -12,6 +12,13 @@ export const metadata: Metadata = {
   description: 'A cloud-based notes app with an Apple Notes-like interface.',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>

@@ -153,6 +153,7 @@ export default function Home() {
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           x={x}
+          isMobile={isMobile}
         />
         <main className="flex flex-1 flex-col overflow-hidden">
           {selectedNote ? (

@@ -31,9 +31,10 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   x?: MotionValue<number>;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isOpen, onToggle, x }: SidebarProps) {
+export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isOpen, onToggle, x, isMobile }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   
   const fallbackX = useMotionValue(0);
@@ -95,16 +96,21 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, isO
   return (
     <>
       {/* Overlay for mobile */}
+      {isMobile && (
+        <motion.div 
+          style={{ opacity: x ? overlayOpacity : (isOpen ? 1 : 0), pointerEvents: x ? pointerEvents : (isOpen ? 'auto' : 'none') }}
+          className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40" 
+          onClick={onToggle}
+        />
+      )}
       <motion.div 
-        style={{ opacity: x ? overlayOpacity : (isOpen ? 1 : 0), pointerEvents: x ? pointerEvents : (isOpen ? 'auto' : 'none') }}
-        className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 md:hidden" 
-        onClick={onToggle}
-      />
-      <motion.div 
-        style={x ? { x } : undefined}
+        style={isMobile && x ? { x } : undefined}
+        animate={!isMobile ? { marginLeft: isOpen ? 0 : -288 } : undefined}
+        initial={false}
+        transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
         className={cn(
-          "absolute inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E] md:relative md:translate-x-0 md:!transform-none",
-          !x && (isOpen ? "translate-x-0" : "-translate-x-full md:hidden")
+          "z-50 flex h-full w-72 shrink-0 flex-col border-r border-gray-200 bg-[#F5F5F4] dark:border-gray-800 dark:bg-[#1C1C1E]",
+          isMobile ? "absolute inset-y-0 left-0" : "relative"
         )}
       >
         <div className="flex items-center justify-between px-4 py-3">

@@ -198,6 +198,70 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
         </div>
       </div>
 
+      {/* Formatting Toolbar */}
+      <div className="flex shrink-0 justify-center border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#121212] px-4 py-2 z-10">
+        <div className="flex flex-wrap items-center justify-center gap-1 w-full max-w-3xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('bold') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('italic') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 1 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <Heading1 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <Heading2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 3 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <Heading3 className="h-4 w-4" />
+          </Button>
+          <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+            className={cn("h-8 w-8 p-0", editor?.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Editor Area */}
       <div 
         className="flex-1 overflow-y-auto px-8 py-6 lg:px-12 lg:py-10 bg-white dark:bg-transparent cursor-text"
@@ -216,68 +280,6 @@ export function Editor({ note, onUpdate, onDelete, onToggleSidebar, isSidebarOpe
               <span>Deadline: {format(note.deadline.toDate(), 'MMMM d, yyyy')}</span>
             </div>
           )}
-
-          {/* Formatting Toolbar */}
-          <div className="mb-4 flex flex-wrap items-center gap-1 border-b border-gray-100 pb-4 dark:border-gray-800" onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('bold') ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('italic') ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 1 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <Heading1 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <Heading2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('heading', { level: 3 }) ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <Heading3 className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              className={cn("h-8 w-8 p-0", editor?.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-800' : '')}
-            >
-              <ListOrdered className="h-4 w-4" />
-            </Button>
-          </div>
 
           <Input
             type="text"
